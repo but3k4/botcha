@@ -1,0 +1,6 @@
+CREATE TABLE admins (id INTEGER PRIMARY KEY, admin VARCHAR);
+CREATE TABLE gtalk(nick VARCHAR PRIMARY KEY, gtalk VARCHAR);
+CREATE TABLE join_msg(id integer primary key, nick varchar, message varchar);
+CREATE TABLE messages(id INTEGER PRIMARY KEY, msg VARCHAR);
+CREATE TABLE quit_msg(id integer primary key, nick varchar, message varchar);
+CREATE TABLE quotes (id INTEGER PRIMARY KEY, quote VARCHAR);
