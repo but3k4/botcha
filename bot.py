@@ -243,7 +243,7 @@ class Bot(SingleServerIRCBot):
                     c.privmsg(self.channel, '%s seu fela da puta, nao existe gtalk cadastrado com esse nick, use: !add_gtalk %s conta@gmail.com' % (nick, gnick))
                 else:
                     gmessage = ' '.join(gcontent[2:])
-                    gtalk = Gtalk('lokky.b@gmail.com', 'ler0ler0')
+                    gtalk = Gtalk('lokky.b@gmail.com', '')
                     send = gtalk.send(gemail, gmessage)
                     gtalk.disconnect()
                     if not send:
