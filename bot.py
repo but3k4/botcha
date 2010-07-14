@@ -31,36 +31,38 @@ class Bot(SingleServerIRCBot):
     def connected_checker(self):
         if not self.conn.is_connected():
             self.conn.execute_delayed(self.reconnection_interval, self.connected_checker)
-            if self.conn.is_connected():
-                self.conn.quit("bye")
+            if self.conn.is_connected(): self.conn.quit("bye")
             self.start()
 
     def on_join(self, c, e):
         nick = nm_to_n(e.source())
+        user = nm_to_u(e.source()).replace('~', '')
         userhost = nm_to_uh(e.source())
         greeting = self.get_join_msg(nick)
-        if greeting:
-            c.privmsg(self.channel, greeting)
-
+        if greeting: c.privmsg(self.channel, greeting)
         self.log('%s [%s] has joined %s' % (nick, userhost, self.channel))
 
     def on_quit(self, c, e):
         nick = nm_to_n(e.source())
         userhost = nm_to_uh(e.source())
         msg = self.get_quit_msg(nick)
-        if msg:
-            c.privmsg(self.channel, msg)
-
+        if msg: c.privmsg(self.channel, msg)
         self.log('%s [%s] has quit %s' % (nick, userhost, self.channel))
 
     def on_part(self, c, e):
         nick = nm_to_n(e.source())
         userhost = nm_to_uh(e.source())
         msg = self.get_quit_msg(nick)
-        if msg:
-            c.privmsg(self.channel, msg)
-
+        if msg: c.privmsg(self.channel, msg)
         self.log('%s [%s] has left %s' % (nick, userhost, self.channel))
+
+    def on_mode(self, c, e):
+        if e.target() == self.channel:
+            try:
+                if parse_channel_modes(e.arguments()[0]) == ['+','o',c.get_nickname()]:
+                    self.log('%s [%s] modes: %s' % (c.get_nickname(), self.channel, parse_channel_modes(e.arguments()[0])))
+            except IndexError:
+                pass
 
     def on_kick(self, c, e):
         nick = nm_to_n(e.source())
@@ -107,6 +109,8 @@ class Bot(SingleServerIRCBot):
         c.privmsg('chanserv', 'akick %s del %s' % (self.channel, self.nickname))
         sleep(0.5)
         c.join(self.channel)
+        sleep(0.5)
+        c.privmsg('chanserv', 'set flood_protection off')
 
     def on_privmsg(self, c, e):
         args = e.arguments()[0]
@@ -134,11 +138,31 @@ class Bot(SingleServerIRCBot):
         sleep(0.5)
         self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
+    def akick(self, n):
+        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
+        sleep(0.5)
+        self.conn.privmsg('chanserv', 'akick %s add %s' % (self.channel, n))
+        sleep(0.5)
+        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
+
+    def unakick(self, n):
+        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
+        sleep(0.5)
+        self.conn.privmsg('chanserv', 'akick %s del %s' % (self.channel, n))
+        sleep(0.5)
+        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
+
     def ban(self, n, msg="eu avisei"):
         self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
         sleep(0.5)
-        self.conn.kick(self.channel, n, msg)
         self.conn.send_raw("MODE %s +b %s" % (self.channel, n))
+        sleep(0.5)
+        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
+
+    def unban(self, n):
+        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
+        sleep(0.5)
+        self.conn.send_raw("MODE %s -b %s" % (self.channel, n))
         sleep(0.5)
         self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
@@ -406,7 +430,7 @@ def daemonize(logfile='/dev/null'):
         if pid > 0:
             sys.exit(0)
     except OSError, e:
-        sys.stderr.write("error startup lokky: (%d) %s\n" % (e.errno, e.strerror))
+        sys.stderr.write("startup error: (%d) %s\n" % (e.errno, e.strerror))
         sys.exit(1)
 
     os.chdir(os.getcwd() + '/')
@@ -418,7 +442,7 @@ def daemonize(logfile='/dev/null'):
         if pid > 0:
             sys.exit(0)
     except OSError, e:
-        sys.stderr.write("error startup lokky: (%d) %s\n" % (e.errno, e.strerror))
+        sys.stderr.write("startup error: (%d) %s\n" % (e.errno, e.strerror))
         sys.exit(1)
 
     si = open(stdin, 'r')
