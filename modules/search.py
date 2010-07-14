@@ -13,86 +13,58 @@ class Search(object):
 
     def __init__(self, qtde=3):
         self.qtde = qtde
-        self.conn = Browser()
+        self.base_url = { 'google': 'http://www.google.com.br', 'youtube': 'http://www.youtube.com', 'maplink': 'http://maplink.uol.com.br' }
+
+    def get_html(self, u):
         self.header = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1'
+        self.conn = Browser()
         self.conn.addheaders = [('User-agent', self.header)]
         self.conn.set_handle_robots(False)
+        self.conn.open(u)
+        self.page = self.conn.response().read()
+        return BeautifulSoup(self.page)
 
     def google(self, s):
-        search = s.replace(' ', '+')
-
-        base = 'http://www.google.com.br/search?'
-        query = "source=ig&hl=pt-BR&rlz=&q=%s&btnG=Pesquisa+Google&meta=" % search
-        
-        query_url = base + query
-        self.conn.open(query_url)
-    
-        result_page = self.conn.response().read()
-    
-        bsoup = BeautifulSoup(result_page)
-        result = bsoup.findAll('div', attrs={'id': 'res'})[0]
-        list = result.findAll('li', attrs={'class': 'g'})
-        
-        urls = []
-        if len(list) > 0:
-            for r in list[0:self.qtde]:
-                link = r.h3.a
-                urls.append(link['href'])
-        
-            return urls
-        else:
-            urls.append("nenhum resultado encontrado para %s" % search.replace('+',' '))
-            return urls
+        search = "/search?source=ig&hl=pt-BR&rlz=&q=%s&btnG=Pesquisa+Google&meta=" % s.replace(' ', '+')
+        url = self.base_url['google'] + search
+        try:
+            soup = self.get_html(url)
+            result = soup.findAll('div', attrs={'id': 'res'})[0].findAll('li', attrs={'class': 'g'})
+            urls = []
+            if len(result) > 0:
+                for link in result[0:self.qtde]:
+                    urls.append(link.h3.a['href'])
+                return urls
+            else:
+                urls.append("nenhum resultado encontrado para %s" % s)
+                return urls
+        except:
+                urls.append("erro na consulta, nao consegui fazer o parse para %s" % s)
+                return urls
 
     def youtube(self, s):
-        search = s.replace(' ', '+')
+        search = "/results?search_query=%s&aq=f" % s.replace(' ', '+')
+        url = self.base_url['youtube'] + search
+        try:
+            soup = self.get_html(url)
+            result = soup.findAll('div', attrs={'class': 'video-long-title'}, limit=self.qtde)
+            urls = []
+            if len(result) > 0:
+                for link in result:
+                    urls.append(self.base_url['youtube'] + link.a['href'])
+                return urls
+            else:
+                urls.append("nenhum resultado encontrado para %s" % s)
+                return urls
+        except:
+                urls.append("erro na consulta, nao consegui fazer o parse para %s" % s)
+                return urls
 
-        base = 'http://www.youtube.com'
-        query = "/results?search_query=%s&search_type=&aq=f" % search
-
-        query_url = base + query
-        self.conn.open(query_url)
-
-        result_page = self.conn.response().read()
-
-        bsoup = BeautifulSoup(result_page)
-        result = bsoup.findAll('div', attrs={'class': 'video-short-title'})[0:self.qtde]
-
-        urls = []
-        if len(result) > 0:
-            for link in result:
-                r = link.a
-                urls.append(base + r['href'])
-
-            return urls
-        else:
-            urls.append("nenhum resultado encontrado para %s" % search.replace('+',' '))
-            return urls
-
-    def mininova(self, s):
-        search = s.replace(' ', '+')
-
-        base = 'http://www.mininova.org'
-        query = '/search/' + search + '/seeds'
-
-        query_url = base + query
-        self.conn.open(query_url)
-
-        result_page = self.conn.response().read()
-
-        bsoup = BeautifulSoup(result_page)
-        result = bsoup.findAll('a')
-
-        x = 0
-        urls = []
-        for link in result:
-            if link['href'].find('/tor/') != -1:
-                urls.append(base + link['href'])
-                x += 1
-                if x >= self.qtde: break
-
-        if len(urls) > 0:
-            return urls
-        else:
-            urls.append("nenhum resultado encontrado para %s" % search.replace('+',' '))
-            return urls
+    def maplink(self):
+        url = "http://maplink.uol.com.br/v2/corredores/Sao-Paulo-SP.htm"
+        soup = self.get_html(url)
+        var = soup.find('ul', id="ctl00_ctl00_cphConteudo_cphConteudo_ulResumoCondicao").findAllNext(text=True, limit=7)
+        t = ""
+        for x in var:
+            t +=  " " + x.encode('utf-8').strip()
+        return t.strip()
