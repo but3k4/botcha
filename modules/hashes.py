@@ -6,10 +6,10 @@ hashes.py - lokky cryptography module
 Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
-import md5
+from md5 import new
 from crypt import crypt
 from random import choice
-from string import ascii_letters, ascii_lowercase, ascii_uppercase, digits
+from string import ascii_letters, digits
 
 class Hashes(object):
 
@@ -17,14 +17,12 @@ class Hashes(object):
         pass
 
     def genCrypt(self, string):
-        string = string.strip()
-        LIST = './' + digits + ascii_letters
+        list = './' + digits + ascii_letters
         salt = '$1$'
         for x in range(0,8):
-            salt += choice(LIST)
+            salt += choice(list)
         salt += '$'
-        return crypt(string, salt)
+        return crypt(string.strip(), salt)
 
     def genMd5(self, string):
-        string = string.strip()
-        return md5.new(string).hexdigest()
+        return new(string.strip()).hexdigest()
