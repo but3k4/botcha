@@ -2,7 +2,7 @@
 #  -*- coding: utf-8 -*-
 #
 from ircbot import SingleServerIRCBot
-from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel
+from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel, irc_lower, parse_channel_modes
 from ConfigParser import ConfigParser
 from modules.search import *
 from modules.database import *
@@ -13,6 +13,7 @@ from modules.gtalk import *
 from time import sleep, time, mktime, ctime
 from datetime import datetime
 import sys, os
+import urllib
 
 class Bot(SingleServerIRCBot):
 
@@ -36,7 +37,6 @@ class Bot(SingleServerIRCBot):
 
     def on_join(self, c, e):
         nick = nm_to_n(e.source())
-        user = nm_to_u(e.source()).replace('~', '')
         userhost = nm_to_uh(e.source())
         greeting = self.get_join_msg(nick)
         if greeting: c.privmsg(self.channel, greeting)
@@ -95,8 +95,7 @@ class Bot(SingleServerIRCBot):
 
     def check_user(self, n):
         for ch in self.channels.values():
-            if ch.has_user(n):
-                return n
+            if ch.has_user(n): return n
 
     def auth(self):
         self.conn.privmsg('NickServ', 'IDENTIFY %s' % self.password)
@@ -119,17 +118,15 @@ class Bot(SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         args = e.arguments()[0]
         self.do_command(e, args)
-        return
 
     def xingamento(self, n):
         db = Database()
         xingamento = db.get_random('msg', 'messages')
         db.disconect()
-	if xingamento == "Error":
-		result = "nao existe xingamentos na base, adicione algum que seja construtivo seu arrombado"
-	else:
-        	result = n + ', ' + xingamento.decode('utf-8')
-        return result
+        if xingamento == "Error":
+            return "nao existe xingamentos na base, adicione algum que seja construtivo seu arrombado"
+        else:
+            return n + ', ' + xingamento.decode('utf-8')
 
     def kick(self, n, msg="vaza fela da puta"):
         self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
@@ -173,7 +170,7 @@ class Bot(SingleServerIRCBot):
         if len(self.msglist) >= 200:
             del self.msglist[0]
 
-    def count_cmd(self, n, command):
+    def count_cmd(self, e, n, command):
         stime = mktime(datetime.fromtimestamp(time()).timetuple()) - 60
         ltime = mktime(datetime.fromtimestamp(time()).timetuple()) - 15
         count = 0
@@ -181,18 +178,18 @@ class Bot(SingleServerIRCBot):
         for line in self.msglist:
             tt, nn, cc = line.split(' ')
             if line.find(n.lower()) != -1 and line.find(command) != -1:
-                if float(tt) > stime:
-                    count += 1
-                if float(tt) > ltime:
-                    ncount += 1
+                if float(tt) > stime: count += 1
+                if float(tt) > ltime: ncount += 1
 
-        if self.check_user(n):
-            if count == 2:
+        if self.check_user(n) and count == 2:
+            if is_channel(e.target()):
                 self.conn.privmsg(self.channel, '%s larga mao de flood, vai levar kick' % n)
-            elif ncount > 2 and count < 4:
-                self.kick(n, msg="se continuar vai levar ban")
-            elif ncount > 2 and count > 4:
-                self.ban(n)
+            else:
+                self.conn.privmsg(n, 'larga mao de flood, vai levar kick')
+        elif self.check_user(n) and ncount > 1 and count == 3:
+            self.kick(n, msg="se continuar vai levar ban")
+        elif self.check_user(n) and ncount > 1 and count > 3:
+            self.ban(n)
         
         return count
 
@@ -201,7 +198,6 @@ class Bot(SingleServerIRCBot):
         user = nm_to_u(e.source()).replace('~', '')
         cmd = args.strip().split(' ')[0]
         args = args.strip()
-
         c = self.conn
 
         if self.check_admin(user) and cmd == "!die":
@@ -212,33 +208,35 @@ class Bot(SingleServerIRCBot):
 
         elif cmd == '!add_xingamento':
             content = args.strip().replace('!add_xingamento', '')
-            if re.compile('b(.*).t(.*).[ck].(.*)', re.I).search(content):
-                self.kick(nick, 'este tipo de xingamento nao eh apropriado')
-            elif len(content) > 3:
-                db = Database()
-                try:
-                    x_add = db.add('messages', content.encode('utf-8'))
-                    db.disconect()
-                    if x_add == -1:
-                        c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
-                    else:
-                        c.privmsg(self.channel, '%s xingamento adicionado com sucesso' % nick)
-                except:
-                        c.privmsg(self.channel, '%s nao consegui adicionar seu xingamento, verifique a codificacao que voce esta usando' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                if re.compile('b(.*).t(.*).[ck].(.*)', re.I).search(content):
+                    self.kick(nick, 'este tipo de xingamento nao eh apropriado')
+                elif len(content) > 3:
+                    db = Database()
+                    try:
+                        x_add = db.add('messages', content.encode('utf-8'))
+                        db.disconect()
+                        if x_add == -1:
+                            c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
+                        else:
+                            c.privmsg(self.channel, '%s xingamento adicionado com sucesso' % nick)
+                    except:
+                            c.privmsg(self.channel, '%s nao consegui adicionar seu xingamento, verifique a codificacao que voce esta usando' % nick)
 
         elif cmd == '!add_quote':
             content = args.strip().replace('!add_quote', '')
-            if len(content) > 3:
-                db = Database()
-                try:
-                    x_add = db.add('quotes', content.encode('utf-8'))
-                    db.disconect()
-                    if x_add == -1:
-                        c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
-                    else:
-                        c.privmsg(self.channel, '%s quote adicionado com sucesso' % nick)
-                except:
-                        c.privmsg(self.channel, '%s nao consegui adicionar seu quote, verifique a codificacao que voce esta usando' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                if len(content) > 3:
+                    db = Database()
+                    try:
+                        x_add = db.add('quotes', content.encode('utf-8'))
+                        db.disconect()
+                        if x_add == -1:
+                            c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
+                        else:
+                            c.privmsg(self.channel, '%s quote adicionado com sucesso' % nick)
+                    except:
+                            c.privmsg(self.channel, '%s nao consegui adicionar seu quote, verifique a codificacao que voce esta usando' % nick)
 
         elif cmd == '!add_gtalk':
             content = args.strip().replace('!add_gtalk', '').split(' ')
@@ -278,17 +276,18 @@ class Bot(SingleServerIRCBot):
                 c.privmsg(self.channel, '%s arrombado, nick tem que ser alfanumerico' % nick)
 
         elif cmd == '!vadio' or cmd == '!lero':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
                 c.privmsg(self.channel, self.xingamento('lero'))
 
         elif cmd == '!quote':
-            _db = Database()
-            quote = _db.get_random('quote', 'quotes')
-            _db.disconect()
-            c.privmsg(self.channel, quote.decode('utf-8'))
+            if self.count_cmd(e, nick, cmd) < 2:
+                _db = Database()
+                quote = _db.get_random('quote', 'quotes')
+                _db.disconect()
+                c.privmsg(self.channel, quote.decode('utf-8'))
 
         elif cmd == '!xinga':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < 2:
                 preto = args.replace('!xinga', '').strip()
                 if preto.lower() == self.nickname:
                     c.privmsg(self.channel, '%s voce acha que sou idiota a ponto de me xingar?' % nick)
@@ -298,17 +297,20 @@ class Bot(SingleServerIRCBot):
                     c.privmsg(self.channel, '%s deixa de ser idiota e pelo menos xinga alguem do canal' % nick)
 
         elif cmd == '!vaza':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
-                preto = args.split(' ')[1]
-                if preto.lower() == self.nickname:
-                    c.privmsg(self.channel, '%s voce acha que sou idiota a ponto de me kickar?' % nick)
-                elif self.check_user(preto):
-                    self.kick(preto)
-                else:
-                    c.privmsg(self.channel, '%s deixa de ser idiota e pelo menos tenta kickar alguem do canal' % nick)
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
+                try:
+                    preto = args.split(' ')[1]
+                    if preto.lower() == self.nickname:
+                        c.privmsg(self.channel, '%s voce acha que sou idiota a ponto de me kickar?' % nick)
+                    elif self.check_user(preto):
+                        self.kick(preto)
+                    else:
+                        c.privmsg(self.channel, '%s deixa de ser idiota e pelo menos tenta kickar alguem do canal' % nick)
+                except:
+                        c.privmsg(self.channel, '%s deixa de ser idiota e pelo menos tenta kickar alguem do canal' % nick)
 
         elif self.check_admin(user) and cmd == "!ban":
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
                 preto = args.split(' ')[1]
                 if preto.lower() == self.nickname:
                     c.privmsg(self.channel, '%s voce acha que sou idiota a ponto de me banir?' % nick)
@@ -319,12 +321,40 @@ class Bot(SingleServerIRCBot):
                 else:
                     c.privmsg(self.channel, '%s deixa de ser idiota e pelo menos tenta banir alguem do canal' % nick)
 
+        elif self.check_admin(user) and cmd == "!unban":
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
+                preto = args.split(' ')[1]
+                if preto.lower() == self.nickname:
+                    c.privmsg(self.channel, '%s eu nao estou banido seu idiota' % nick)
+                else:
+                    self.unban(preto)
+
+        elif self.check_admin(user) and cmd == "!akick":
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
+                preto = args.split(' ')[1]
+                if preto.lower() == self.nickname:
+                    c.privmsg(self.channel, '%s voce acha que sou idiota a ponto de colocar meu nick na akick?' % nick)
+                elif self.check_user(preto):
+                    c.privmsg(self.channel, '%s Se fodeu :)' % preto)
+                    sleep(2)
+                    self.akick(preto)
+                else:
+                    c.privmsg(self.channel, '%s deixa de ser idiota e informa o nick de alguem do canal seu retardado' % nick)
+
+        elif self.check_admin(user) and cmd == "!unakick":
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
+                preto = args.split(' ')[1]
+                if preto.lower() == self.nickname:
+                    c.privmsg(self.channel, '%s eu nao estou na akick seu idiota' % nick)
+                else:
+                    self.unakick(preto)
+
         elif cmd == '!flambers':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
                 c.privmsg(self.channel, 'flambers, cadê a maconha seu safado?')
 
         elif cmd == '!brigadeiro':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
                 bpreto = args.replace('!brigadeiro', '').strip()
                 if bpreto:
                     c.privmsg(self.channel, '%s voce ta pegando so um brigadeiro? voce so pode pegar um hein?' % bpreto)
@@ -332,7 +362,7 @@ class Bot(SingleServerIRCBot):
                     c.privmsg(self.channel, 'ja avisei todos voces, so pode pegar um brigadeiro.')
 
         elif cmd == '!wow':
-            if self.count_cmd(nick, cmd) < self.qtde_cmd:
+            if self.count_cmd(e, nick, cmd) < self.qtde_cmd:
                 wpreto = args.replace('!wow', '').strip()
                 if wpreto:
                     c.privmsg(self.channel, '%s vamos fazer uma dungeon?' % wpreto)
@@ -340,77 +370,94 @@ class Bot(SingleServerIRCBot):
                     c.privmsg(self.channel, 'alguem aqui do canal ta afim de fazer uma dungeon?')
 
         elif cmd == '!md5':
-            string = args.strip().replace('!md5', '').strip()
-            if (len(string) >= 1):
-                md5 = Hashes()
-                result = md5.genMd5(string)
-                c.privmsg(self.channel, 'md5: ' + result)
-            else:
-                c.privmsg(self.channel, '%s gerar md5 de nenhum caracter eh foda hein?' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                string = args.strip().replace('!md5', '').strip()
+                if (len(string) >= 1):
+                    md5 = Hashes()
+                    result = md5.genMd5(string)
+                    c.privmsg(self.channel, 'md5: ' + result)
+                else:
+                    c.privmsg(self.channel, '%s gerar md5 de nenhum caracter eh foda hein?' % nick)
 
         elif cmd == '!crypt':
-            string = args.strip().replace('!crypt', '').strip()
-            if (len(string) >= 1):
-                crypt = Hashes()
-                result = crypt.genCrypt(string)
-                c.privmsg(self.channel, 'crypt: ' + result)
-            else:
-                c.privmsg(self.channel, '%s gerar crypt de nenhum caracter eh foda hein?' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                string = args.strip().replace('!crypt', '').strip()
+                if (len(string) >= 1):
+                    crypt = Hashes()
+                    result = crypt.genCrypt(string)
+                    c.privmsg(self.channel, 'crypt: ' + result)
+                else:
+                    c.privmsg(self.channel, '%s gerar crypt de nenhum caracter eh foda hein?' % nick)
 
         elif cmd == '!tbinary':
-            string = args.strip().replace('!tbinary', '').strip()
-            if (len(string) >= 1):
-                binary = Convert()
-                result = binary.string2binary(string)
-                c.privmsg(self.channel, 'to binary: ' + result)
-            else:
-                c.privmsg(self.channel, '%s gerar binario sem caracter algum eh foda hein?' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                string = args.strip().replace('!tbinary', '').strip()
+                if (len(string) >= 1):
+                    binary = Convert()
+                    result = binary.string2binary(string)
+                    c.privmsg(self.channel, 'to binary: ' + result)
+                else:
+                    c.privmsg(self.channel, '%s gerar binario sem caracter algum eh foda hein?' % nick)
 
         elif cmd == '!fbinary':
-            binary = args.strip().replace('!fbinary', '').strip()
-            if (len(binary) > 1):
-                string = Convert()
-                result = string.binary2string(binary)
-                c.privmsg(self.channel, 'from binary: ' + result)
-            else:
-                c.privmsg(self.channel, '%s informe algum caracter binario seu idiota?' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                binary = args.strip().replace('!fbinary', '').strip()
+                if (len(binary) > 1):
+                    string = Convert()
+                    result = string.binary2string(binary)
+                    c.privmsg(self.channel, 'from binary: ' + result)
+                else:
+                    c.privmsg(self.channel, '%s informe algum caracter binario seu idiota?' % nick)
 
         elif cmd == '!google':
-            gsearch = Search()
+            search = Search()
             string = args.strip().replace('!google', '').strip().replace(':', ' ')
-            if (len(string) >= 3):
-                for result in gsearch.google(string):
-                    c.privmsg(self.channel, 'google: ' + result)
+            if self.count_cmd(e, nick, cmd) < 2:
+                if (len(string) >= 3):
+                    for result in search.google(string):
+                        c.privmsg(self.channel, result)
+                        sleep(2)
+                else:
+                    c.privmsg(self.channel, '%s utilize pelo menos 3 letras na sua pesquisa seu retardado' % nick)
+
+        elif cmd == '!transito':
+            search = Search()
+            string = args.strip().replace('!transito', '').strip().replace(':', ' ')
+            if self.count_cmd(e, nick, cmd) < 2:
+                try:
+                    result = search.maplink()
+                    c.privmsg(self.channel, result.strip())
                     sleep(2)
-            else:
-                c.privmsg(self.channel, '%s utilize pelo menos 3 letras na sua pesquisa seu retardado' % nick)
+                except:
+                    c.privmsg(self.channel, '%s problemas ao acessar o site da cet, tente novamente mais tarde' % nick)
+
+        elif cmd == '!tinyurl':
+            string = args.strip().replace('!tinyurl', '').strip()
+            if self.count_cmd(e, nick, cmd) < 2:
+                if string.find('http://') != -1:
+                        result = urllib.urlopen("http://tinyurl.com/api-create.php?url=%s" % string).read()
+                        c.privmsg(self.channel, 'tinyurl: ' + result)
+                        sleep(2)
+                else:
+                    c.privmsg(self.channel, '%s voce eh tao idiota que nao sabe que url tem o http:// ?' % nick)
 
         elif cmd == '!youtube':
-            ysearch = Search()
+            search = Search()
             string = args.strip().replace('!youtube', '').strip()
-            if (len(string) > 0):
-                for result in ysearch.youtube(string):
-                    c.privmsg(self.channel, 'youtube: ' + result)
-                    sleep(2)
-            else:
-                c.privmsg(self.channel, '%s utilize pelo menos 3 letras na sua pesquisa seu retardado' % nick)
-
-        elif cmd == '!mininova':
-            msearch = Search()
-            string = args.strip().replace('!mininova', '').strip()
-            if (len(string) > 0):
-                for result in msearch.mininova(string):
-                    c.privmsg(self.channel, 'mininova: ' + result)
-                    sleep(2)
-            else:
-                c.privmsg(self.channel, '%s utilize pelo menos 3 letras na sua pesquisa seu retardado' % nick)
+            if self.count_cmd(e, nick, cmd) < 2:
+                if (len(string) > 0):
+                    for result in search.youtube(string):
+                        c.privmsg(self.channel, result)
+                        sleep(2)
+                else:
+                    c.privmsg(self.channel, '%s utilize pelo menos 3 letras na sua pesquisa seu retardado' % nick)
 
         elif cmd == '!help':
-            if self.count_cmd(nick, cmd) < 1:
-                commands = { 'add_xingamento' : 'adiciona xingamentos', 'vadio' : 'xinga o guilherme', 'lero' : 'tambem xinga o guilherme', 'xinga' : 'xinga algum individuo do canal', 'flambers' : 'faz uma pergunta muito importante ao flambers', 'md5' : 'gera hash em md5', 'crypt' : 'gera hash em cript que pode ser usado em qualquer sistema de autenticacao, ex: shadow', 'tbinary' : 'converte de string para binario', 'fbinary' : 'converte de binario para string', 'google' : 'faz pesquisas no google', 'youtube' : 'faz pesquisas no youtube', 'mininova' : 'faz pesquisas por torrents', 'vaza' : 'da um kick em alguem', 'gtalk' : 'envia mensagem pros negos do gtalk (nao esquecer de informar gtalk e mensagem)', 'brigadeiro' : 'pergunta pro nego sobre o brigadeiro', 'wow' : 'chama um nego pra fazer uma dungeon' }
-                c.privmsg(self.channel, 'os comandos disponiveis sao:')
+            if self.count_cmd(e, nick, cmd) < 2:
+                commands = { 'add_xingamento' : 'adiciona xingamentos', 'vadio' : 'xinga o guilherme', 'lero' : 'tambem xinga o guilherme', 'xinga' : 'xinga algum individuo do canal', 'flambers' : 'faz uma pergunta muito importante ao flambers', 'md5' : 'gera hash em md5', 'crypt' : 'gera hash em cript que pode ser usado em qualquer sistema de autenticacao, ex: shadow', 'tbinary' : 'converte de string para binario', 'fbinary' : 'converte de binario para string', 'google' : 'faz pesquisas no google', 'youtube' : 'faz pesquisas no youtube', 'vaza' : 'da um kick em alguem', 'gtalk' : 'envia mensagem pros negos do gtalk (nao esquecer de informar gtalk e mensagem)', 'brigadeiro' : 'pergunta pro nego sobre o brigadeiro', 'wow' : 'chama um nego pra fazer uma dungeon' }
+                c.privmsg(nick, 'os comandos disponiveis sao:')
                 for x in (commands.keys()):
-                    c.privmsg(self.channel, '%s: %s' % (x, commands[x]))
+                    c.privmsg(nick, '%s: %s' % (x, commands[x]))
                     sleep(1)
 
         if is_channel(e.target()):
