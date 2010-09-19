@@ -1,0 +1,14 @@
+h1. Botcha Manual
+
+Botcha is an python irc bot
+
+h2. Requirements
+
+Botcha uses some python libraries, so, on debian systems type:
+
+<pre><code>apt-get install python-irclib python-beautifulsoup python-mechanize</code></pre>
+
+h2. Installation
+
+Coming soon.
+
