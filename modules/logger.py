@@ -6,8 +6,9 @@ logger.py - lokky logger module
 Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
-import time
-import os
+from time import strftime
+from os.path import exists, join
+from os import makedirs
 from sys import stdout
 
 class Logger(object):
@@ -15,18 +16,15 @@ class Logger(object):
         self.debug = 0
 
     def __call__(self, string):
-        base = "log"
-        logdir = os.path.join(base, time.strftime("%Y%m"))
-        filename = os.path.join(logdir, time.strftime("%Y%m%d") + '.log')
-        string = '[' + time.strftime("%d/%m/%Y %H:%M:%S") + ']' + ' ' + string + '\n'
-        if os.path.exists(base) == False:
-            os.mkdir(base, 0755)
-        if os.path.exists(logdir) == False:
-            os.mkdir(logdir, 0755)
+        logdir = join('log', strftime("%Y"), strftime("%m"))
+        filename = "%s.log" % (join(logdir, strftime("%Y%m%d")))
+        string = "[ %s ] %s" % (strftime("%d/%m/%Y %H:%M:%S"), string)
+        if not exists(logdir):
+            makedirs(logdir, 0755)
         file = open(filename, 'a')
-        file.write(string)
+        file.write("%s\n" % string)
         if self.debug:
-            stdout.write(string)
+            stdout.write("%s\n" % string)
         file.close()
 
     def set_debug(self, debug=0):
