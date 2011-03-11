@@ -35,8 +35,13 @@ class Search(object):
             result = soup.findAll('div', attrs={'id': 'res'})[0].findAll('li', attrs={'class': 'g'})
             urls = []
             if len(result) > 0:
-                for link in result[0:self.qtde]:
-                    urls.append(link.h3.a['href'])
+                count = 0
+                for link in result:
+                    if str(link.h3.a['href'])[:4] == 'http':
+                        urls.append(link.h3.a['href'])
+                        count += 1
+                    if count >= self.qtde:
+                        break
                 return urls
             else:
                 urls.append("nenhum resultado encontrado para %s" % s)
