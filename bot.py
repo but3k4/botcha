@@ -4,20 +4,24 @@
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel, irc_lower, parse_channel_modes
 from ConfigParser import ConfigParser
-from modules.search import *
-from modules.daemonize import *
-from modules.database import *
-from modules.logger import *
-from modules.hashes import *
-from modules.convert import *
-from modules.gtalk import *
 from time import sleep, time, mktime, ctime
 from datetime import datetime
 import sys, os
 import urllib
 
+PATH = os.path.dirname(os.path.abspath(__file__))
+
 reload(sys) 
 sys.setdefaultencoding('latin-1')
+sys.path.append(os.path.join(PATH, 'modules'))
+
+from search import Search
+from daemonize import Daemonize
+from database import Database
+from logger import Logger
+from hashes import Hashes
+from convert import Convert
+from gtalk import Gtalk
 
 class Bot(SingleServerIRCBot):
 
@@ -460,11 +464,11 @@ class Bot(SingleServerIRCBot):
             self.anti_flood(nick, args)
 
 if __name__ == "__main__":
-    daemon = Daemonize("startup.log")
+    daemon = Daemonize(os.path.join(PATH, 'startup.log'))
     daemon.start()
     config = ConfigParser()
     section = 'lokky'
-    config.read("conf/config.cfg")
+    config.read(os.path.join(PATH, 'conf/config.cfg'))
     channel = config.get(section, 'channel')
     nick = config.get(section, 'nickname')
     passwd = config.get(section, 'password')
