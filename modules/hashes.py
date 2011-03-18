@@ -5,7 +5,11 @@ hashes.py - lokky cryptography module
 Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
-from md5 import new
+try:
+    from hashlib import md5
+except:
+    from md5 import new as md5
+
 from crypt import crypt
 from random import choice
 from string import ascii_letters, digits
@@ -24,4 +28,4 @@ class Hashes(object):
         return crypt(string.strip(), salt)
 
     def md5(self, string):
-        return new(string.strip()).hexdigest()
+        return md5(string.strip()).hexdigest()
