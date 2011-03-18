@@ -6,12 +6,15 @@ Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
 import sqlite3 as sqlite
+from os.path import abspath, dirname, join
 from types import *
 
 class Database(object):
 
-    def __init__(self, db='db/sqlite.db'):
-        self.conn = sqlite.connect(db)
+    def __init__(self):
+        path = '/'.join(dirname(abspath(__file__)).split('/')[:-1])
+        dbfile = join(path, 'db/sqlite.db')
+        self.conn = sqlite.connect(dbfile)
         self.cursor = self.conn.cursor()
 
     def add(self, table, content):
