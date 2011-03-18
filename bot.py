@@ -26,7 +26,6 @@ from gtalk import Gtalk
 class Decorator(object):
     @classmethod
     def need_op(self, met):
-        print "method name = %s" % met.__name__
         def op(*args, **kwargs):
             args[0].conn.privmsg('chanserv', 'op %s %s' % (args[0].channel, args[0].nickname))
             sleep(0.5)
