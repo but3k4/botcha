@@ -5,6 +5,7 @@ from ircbot import SingleServerIRCBot
 from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel, irc_lower, parse_channel_modes
 from ConfigParser import ConfigParser
 from modules.search import *
+from modules.daemonize import *
 from modules.database import *
 from modules.logger import *
 from modules.hashes import *
@@ -374,7 +375,7 @@ class Bot(SingleServerIRCBot):
                 string = args.strip().replace('!md5', '').strip()
                 if (len(string) >= 1):
                     md5 = Hashes()
-                    result = md5.genMd5(string)
+                    result = md5.md5(string)
                     c.privmsg(self.channel, 'md5: ' + result)
                 else:
                     c.privmsg(self.channel, '%s gerar md5 de nenhum caracter eh foda hein?' % nick)
@@ -384,7 +385,7 @@ class Bot(SingleServerIRCBot):
                 string = args.strip().replace('!crypt', '').strip()
                 if (len(string) >= 1):
                     crypt = Hashes()
-                    result = crypt.genCrypt(string)
+                    result = crypt.crypt(string)
                     c.privmsg(self.channel, 'crypt: ' + result)
                 else:
                     c.privmsg(self.channel, '%s gerar crypt de nenhum caracter eh foda hein?' % nick)
@@ -467,40 +468,9 @@ class Bot(SingleServerIRCBot):
             self.log('pvt' + ": " + nick + " - " + args)
             self.anti_flood(nick, args)
 
-def daemonize(logfile='/dev/null'):
-    stdin = '/dev/null'
-    stdout = logfile
-    stderr = stdout
-
-    try:
-        pid = os.fork()
-        if pid > 0:
-            sys.exit(0)
-    except OSError, e:
-        sys.stderr.write("startup error: (%d) %s\n" % (e.errno, e.strerror))
-        sys.exit(1)
-
-    os.chdir(os.getcwd() + '/')
-    os.umask(0)
-    os.setsid()
-
-    try:
-        pid = os.fork()
-        if pid > 0:
-            sys.exit(0)
-    except OSError, e:
-        sys.stderr.write("startup error: (%d) %s\n" % (e.errno, e.strerror))
-        sys.exit(1)
-
-    si = open(stdin, 'r')
-    so = open(stdout, 'a+')
-    se = open(stderr, 'a+', 0)
-    os.dup2(si.fileno(), sys.stdin.fileno())
-    os.dup2(so.fileno(), sys.stdout.fileno())
-    os.dup2(se.fileno(), sys.stderr.fileno())
-
 if __name__ == "__main__":
-    daemonize("startup.log")
+    daemon = Daemonize("startup.log")
+    daemon.start()
     config = ConfigParser()
     section = 'lokky'
     config.read("conf/config.cfg")
