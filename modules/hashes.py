@@ -15,7 +15,7 @@ class Hashes(object):
     def __init__(self):
         pass
 
-    def genCrypt(self, string):
+    def crypt(self, string):
         list = './' + digits + ascii_letters
         salt = '$1$'
         for x in range(0,8):
@@ -23,5 +23,5 @@ class Hashes(object):
         salt += '$'
         return crypt(string.strip(), salt)
 
-    def genMd5(self, string):
+    def md5(self, string):
         return new(string.strip()).hexdigest()
