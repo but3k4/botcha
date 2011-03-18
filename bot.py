@@ -1,5 +1,5 @@
 #! /usr/bin/env python2.6
-#  -*- coding: utf-8 -*-
+#  -*- coding: latin-1 -*-
 #
 from ircbot import SingleServerIRCBot
 from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel, irc_lower, parse_channel_modes
@@ -15,6 +15,9 @@ from time import sleep, time, mktime, ctime
 from datetime import datetime
 import sys, os
 import urllib
+
+reload(sys) 
+sys.setdefaultencoding('latin-1')
 
 class Bot(SingleServerIRCBot):
 
@@ -115,7 +118,7 @@ class Bot(SingleServerIRCBot):
         if xingamento == "Error":
             return "nao existe xingamentos na base, adicione algum que seja construtivo seu arrombado"
         else:
-            return n + ', ' + xingamento.decode('utf-8')
+            return n + ', ' + xingamento
 
     def kick(self, n, msg="vaza fela da puta"):
         self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
@@ -203,7 +206,7 @@ class Bot(SingleServerIRCBot):
                 elif len(content) > 3:
                     db = Database()
                     try:
-                        x_add = db.add('messages', content.encode('utf-8'))
+                        x_add = db.add('messages', content)
                         db.disconect()
                         if x_add == -1:
                             c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
@@ -218,7 +221,7 @@ class Bot(SingleServerIRCBot):
                 if len(content) > 3:
                     db = Database()
                     try:
-                        x_add = db.add('quotes', content.encode('utf-8'))
+                        x_add = db.add('quotes', content)
                         db.disconect()
                         if x_add == -1:
                             c.privmsg(self.channel, '%s vai fazer sql injection na puta que pariu' % nick)
@@ -273,7 +276,7 @@ class Bot(SingleServerIRCBot):
                 _db = Database()
                 quote = _db.get_random('quote', 'quotes')
                 _db.disconect()
-                c.privmsg(self.channel, quote.decode('utf-8'))
+                c.privmsg(self.channel, quote)
 
         elif cmd == '!xinga':
             if self.count_cmd(e, nick, cmd) < 2:
