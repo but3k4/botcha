@@ -57,14 +57,6 @@ class Bot(SingleServerIRCBot):
         if msg: c.privmsg(self.channel, msg)
         self.log('%s [%s] has left %s' % (nick, userhost, self.channel))
 
-    def on_mode(self, c, e):
-        if e.target() == self.channel:
-            try:
-                if parse_channel_modes(e.arguments()[0]) == ['+','o',c.get_nickname()]:
-                    self.log('%s [%s] modes: %s' % (c.get_nickname(), self.channel, parse_channel_modes(e.arguments()[0])))
-            except IndexError:
-                pass
-
     def on_kick(self, c, e):
         nick = nm_to_n(e.source())
         kicked = e.arguments()[0]
@@ -98,12 +90,8 @@ class Bot(SingleServerIRCBot):
         for ch in self.channels.values():
             if ch.has_user(n): return n
 
-    def auth(self):
-        self.conn.privmsg('NickServ', 'IDENTIFY %s' % self.password)
-        sleep(10)
-
     def on_welcome(self, c, e):
-        self.auth()
+        self.conn.privmsg('NickServ', 'IDENTIFY %s' % self.password)
         sleep(0.5)
         c.privmsg('chanserv', 'unban %s' % self.channel)
         c.privmsg('chanserv', 'akick %s del %s' % (self.channel, self.nickname))
