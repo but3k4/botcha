@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+#  -*- coding: latin-1 -*-
 #
 """
 database.py - lokky database module

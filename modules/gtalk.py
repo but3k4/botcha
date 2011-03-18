@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+#  -*- coding: latin-1 -*-
 #
 """
 gtalk.py - lokky gtalk module
 Copyright 2009, Claudio Borges
 Licensed under BSD License.
 """
-
 import xmpp, sys
 
 class Gtalk(object):

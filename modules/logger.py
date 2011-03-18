@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+#  -*- coding: latin-1 -*-
 #
 """
 logger.py - lokky logger module
@@ -12,6 +11,7 @@ from os import makedirs
 from sys import stdout
 
 class Logger(object):
+
     def __init__(self):
         self.debug = 0
 

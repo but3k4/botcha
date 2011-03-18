@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-#  -*- coding: utf-8 -*-
+#  -*- coding: latin-1 -*-
 #
 """
 binary.py - lokky binary conversion module
 Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
-
 import re
 
 class Convert(object):
