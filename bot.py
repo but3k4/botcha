@@ -23,6 +23,17 @@ from hashes import Hashes
 from convert import Convert
 from gtalk import Gtalk
 
+class Decorator(object):
+    @classmethod
+    def need_op(self, met):
+        print "method name = %s" % met.__name__
+        def op(*args, **kwargs):
+            args[0].conn.privmsg('chanserv', 'op %s %s' % (args[0].channel, args[0].nickname))
+            sleep(0.5)
+            met(*args, **kwargs)
+            args[0].conn.privmsg('chanserv', 'deop %s %s' % (args[0].channel, args[0].nickname))
+        return op
+
 class Bot(SingleServerIRCBot):
 
     log = Logger()
@@ -124,40 +135,25 @@ class Bot(SingleServerIRCBot):
         else:
             return n + ', ' + xingamento
 
+    @Decorator.need_op
     def kick(self, n, msg="vaza fela da puta"):
-        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
-        sleep(0.5)
         self.conn.kick(self.channel, n, msg)
-        sleep(0.5)
-        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
+    @Decorator.need_op
     def akick(self, n):
-        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
-        sleep(0.5)
         self.conn.privmsg('chanserv', 'akick %s add %s' % (self.channel, n))
-        sleep(0.5)
-        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
+    @Decorator.need_op
     def unakick(self, n):
-        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
-        sleep(0.5)
         self.conn.privmsg('chanserv', 'akick %s del %s' % (self.channel, n))
-        sleep(0.5)
-        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
+    @Decorator.need_op
     def ban(self, n, msg="eu avisei"):
-        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
-        sleep(0.5)
         self.conn.send_raw("MODE %s +b %s" % (self.channel, n))
-        sleep(0.5)
-        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
+    @Decorator.need_op
     def unban(self, n):
-        self.conn.privmsg('chanserv', 'op %s %s' % (self.channel, self.nickname))
-        sleep(0.5)
         self.conn.send_raw("MODE %s -b %s" % (self.channel, n))
-        sleep(0.5)
-        self.conn.privmsg('chanserv', 'deop %s %s' % (self.channel, self.nickname))
 
     def anti_flood(self, n, args):
         cmd = args.split(' ')[0]
