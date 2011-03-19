@@ -6,7 +6,7 @@ Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
 from time import strftime
-from os.path import exists, join
+from os.path import abspath, dirname, exists, join
 from os import makedirs
 from sys import stdout
 
@@ -16,7 +16,8 @@ class Logger(object):
         self.debug = 0
 
     def __call__(self, string):
-        logdir = join('log', strftime("%Y"), strftime("%m"))
+        path = '/'.join(dirname(abspath(__file__)).split('/')[:-1])
+        logdir = join(path, 'log', strftime("%Y"), strftime("%m"))
         filename = "%s.log" % (join(logdir, strftime("%Y%m%d")))
         string = "[ %s ] %s" % (strftime("%d/%m/%Y %H:%M:%S"), string)
         if not exists(logdir):
