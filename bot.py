@@ -6,7 +6,9 @@ from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel, irc_lower, p
 from ConfigParser import ConfigParser
 from time import sleep, time, mktime, ctime
 from datetime import datetime
-import sys, os
+import sys
+import os
+import re
 import urllib
 
 PATH = os.path.dirname(os.path.abspath(__file__))
@@ -17,21 +19,12 @@ sys.path.append(os.path.join(PATH, 'modules'))
 
 from search import Search
 from daemonize import Daemonize
+from decorators import Decorator
 from database import Database
 from logger import Logger
 from hashes import Hashes
 from convert import Convert
 from gtalk import Gtalk
-
-class Decorator(object):
-    @classmethod
-    def need_op(self, met):
-        def op(*args, **kwargs):
-            args[0].conn.privmsg('chanserv', 'op %s %s' % (args[0].channel, args[0].nickname))
-            sleep(0.5)
-            met(*args, **kwargs)
-            args[0].conn.privmsg('chanserv', 'deop %s %s' % (args[0].channel, args[0].nickname))
-        return op
 
 class Bot(SingleServerIRCBot):
 
