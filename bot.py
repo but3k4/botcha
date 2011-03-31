@@ -28,7 +28,7 @@ class Commands(object):
 
         for command in os.listdir(os.path.join(PATH, 'commands')):
             if command.endswith('.py'):
-                name = command.replace('.py', '')
+                name = command.strip('.py')
                 self.commands[name] = load_source(name, os.path.join(PATH, 'commands', command))
 
     def run(self):
