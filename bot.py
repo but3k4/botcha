@@ -43,7 +43,7 @@ class Bot(SingleServerIRCBot):
     def __init__(self, channel, nickname, password, server, port=6667):
         self.nickname = nickname
         self.password = password
-        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname, reconnection_interval=60)
+        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname, reconnection_interval=60, ipv6=True)
         self.channel = channel
         self.conn = self.connection
         self.start()
