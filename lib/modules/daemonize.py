@@ -1,11 +1,12 @@
-#  -*- coding: latin-1 -*-
+#  -*- coding: utf-8 -*-
 #
 """
 daemonize.py - lokky daemon module
-Copyright 2011, Claudio Borges
+Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
-import os, sys
+import os
+import sys
 
 class Daemonize(object):
 
