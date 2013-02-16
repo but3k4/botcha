@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 #
-import gevent.monkey
-gevent.monkey.patch_all()
-
 import os
 import sys
 import struct
@@ -15,7 +12,7 @@ from imp import load_source
 from ConfigParser import ConfigParser
 
 from ircbot import SingleServerIRCBot
-from irclib import nm_to_h, nm_to_n, nm_to_u, nm_to_uh, is_channel
+from irclib import nm_to_n, nm_to_uh, is_channel
 
 from lib.modules.logger import Logger
 from lib.modules.daemonize import Daemonize
@@ -47,13 +44,14 @@ class Bot(SingleServerIRCBot):
         self.dcc_received = {}
         self.nickname = nickname
         self.password = password
-        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname, reconnection_interval=60, ipv6=True)
+        SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname, reconnection_interval=60)
         self.channel = channel
         self.conn = self.connection
         self.messages = []
         self.log = Logger()
 
         self.start()
+        self.connected_checker()
 
     def connected_checker(self):
         if not self.conn.is_connected():

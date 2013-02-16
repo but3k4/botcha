@@ -42,7 +42,7 @@ class SingleServerIRCBot(SimpleIRCClient):
     have operator or voice modes.  The "database" is kept in the
     self.channels attribute, which is an IRCDict of Channels.
     """
-    def __init__(self, server_list, nickname, realname, reconnection_interval=60, ipv6=False):
+    def __init__(self, server_list, nickname, realname, reconnection_interval=60):
         """Constructor for SingleServerIRCBot objects.
 
         Arguments:
@@ -58,8 +58,6 @@ class SingleServerIRCBot(SimpleIRCClient):
             reconnection_interval -- How long the bot should wait
                                      before trying to reconnect.
 
-            ipv6 -- Enable support for ipv6.
-
             dcc_connections -- A list of initiated/accepted DCC
             connections.
         """
@@ -73,7 +71,6 @@ class SingleServerIRCBot(SimpleIRCClient):
 
         self._nickname = nickname
         self._realname = realname
-        self._ipv6 = ipv6
         for i in ["disconnect", "join", "kick", "mode",
                   "namreply", "nick", "part", "quit"]:
             self.connection.add_global_handler(i,
@@ -92,18 +89,11 @@ class SingleServerIRCBot(SimpleIRCClient):
         if len(self.server_list[0]) > 2:
             password = self.server_list[0][2]
         try:
-            if self._ipv6:
-               self.connect(self.server_list[0][0],
-                            self.server_list[0][1],
-                            self._nickname,
-                            password,
-                            ircname=self._realname, ipv6=True)
-            else:
-               self.connect(self.server_list[0][0],
-                            self.server_list[0][1],
-                            self._nickname,
-                            password,
-                            ircname=self._realname)
+            self.connect(self.server_list[0][0],
+                         self.server_list[0][1],
+                         self._nickname,
+                         password,
+                         ircname=self._realname)
         except ServerConnectionError:
             pass
 
