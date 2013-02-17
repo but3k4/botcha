@@ -12,5 +12,5 @@ class Transito(Base_Command.Base_Command):
         except:
             return False
 
-    def run(self):
+    def run(self, e):
         self.transito()

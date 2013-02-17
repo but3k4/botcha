@@ -15,5 +15,5 @@ class Xinga(Base_Command.Base_Command):
         if self.xinga:
             self.parent.conn.privmsg(self.channel, self.xinga)
 
-    def run(self):
+    def run(self, e):
         self.xinga()

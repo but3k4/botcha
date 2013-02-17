@@ -10,5 +10,5 @@ class Die(Base_Command.Base_Command):
             self.parent.conn.privmsg(self.channel, 'see ya')
             self.parent.die()
 
-    def run(self):
+    def run(self, e):
         self.die()
