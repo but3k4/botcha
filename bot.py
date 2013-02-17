@@ -33,10 +33,10 @@ class Commands(object):
                 name = command.rstrip('.py')
                 self.commands[name] = load_source(name, os.path.join(lib.commands.__file__.rsplit("/", 1)[0], command))
 
-    def run(self):
+    def run(self, e):
         if self.cmd in self.commands:
             obj = getattr(self.commands[self.cmd], self.cmd.capitalize())(self.parent, self.event)
-            obj.run()
+            obj.run(e)
 
 class Bot(SingleServerIRCBot):
 
@@ -150,7 +150,7 @@ class Bot(SingleServerIRCBot):
                 self.conn.privmsg(e.target(), 'flood protection enabled, wait few seconds and try again')
             else:
                 command = Commands(self, cmd, e)
-                command.run()
+                command.run(e)
 
         if is_channel(e.target()):
             self.log('%s: %s - %s' % (self.channel, nick, message))
