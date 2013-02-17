@@ -15,5 +15,5 @@ class Quote(Base_Command.Base_Command):
         if self.quote:
             self.parent.conn.privmsg(self.channel, self.quote)
 
-    def run(self, e):
+    def run(self):
         self.quote()

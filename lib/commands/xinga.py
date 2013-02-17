@@ -2,14 +2,12 @@
 #
 from lib.commands import Base_Command
 from lib.modules.database import Database
-from irclib import nm_to_n
 
 class Xinga(Base_Command.Base_Command):
 
-    def xinga(self,e):
-	nick = nm_to_n(e.source())	
+    def xinga(self, nick):
 	if len(self.args) < 1:
-		self.parent.conn.privmsg(self.channel,'%s, deixa de ser burro e xinga alguém. ' % nick)	
+		self.parent.conn.privmsg(self.channel,'%s, deixa de ser burro e xinga alguém. ' % self.nick)	
 	else:
 	        db = Database()
 	        self.xinga = None
@@ -20,5 +18,5 @@ class Xinga(Base_Command.Base_Command):
 	        if self.xinga:
 	            	self.parent.conn.privmsg(self.channel,'%s, %s' % (self.args[0],self.xinga))
 
-    def run(self, e):
-        self.xinga(e)
+    def run(self):
+        self.xinga(self.target)
