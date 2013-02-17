@@ -12,14 +12,12 @@ class Base_Command(object):
 
     def check_admin(self):
         db = Database()
-        self.nick = None
+        self.admins = None
         try:
-            self.nick = db.select('admin', 'admins')
-            print "admin nick = %s" % self.nick
-            print type(self.nick)
+            self.admins = [ nick[0] for nick in db.select('admin', 'admins') ]
         except:
             return False
-        return self.nick
+        return self.nick in self.admins
 
     def __setup__(self):
         pass
