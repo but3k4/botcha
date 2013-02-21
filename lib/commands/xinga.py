@@ -19,4 +19,4 @@ class Xinga(Base_Command.Base_Command):
 	            	self.parent.conn.privmsg(self.channel,'%s, %s' % (self.args[0],self.xinga))
 
     def run(self):
-        self.xinga(self.target)
+        self.xinga(self.nick)

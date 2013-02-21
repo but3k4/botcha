@@ -5,8 +5,8 @@ class Base_Command(object):
     def __init__(self, parent, event):
         self.args = event.arguments()[0].split()[1:]
         self.parent = parent
-        self.target = nm_to_n(event.source())
-        self.nick = nm_to_u(event.source()).strip('~')
+        self.nick = nm_to_n(event.source())
+        self.name = nm_to_u(event.source()).strip('~')
         self.channel = event.target()
         self.__setup__()
 
@@ -17,7 +17,7 @@ class Base_Command(object):
             self.admins = [ nick[0] for nick in db.select('admin', 'admins') ]
         except:
             return False
-        return self.nick in self.admins
+        return self.name in self.admins
 
     def __setup__(self):
         pass
