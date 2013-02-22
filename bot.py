@@ -142,20 +142,23 @@ class Bot(SingleServerIRCBot):
 
     def do_command(self, c, e):
         message = e.arguments()[0]
-        cmd = message.strip().split()[0]
-        nick = nm_to_n(e.source())
+        try:
+            cmd = message.strip().split()[0]
+            nick = nm_to_n(e.source())
 
-        if cmd.startswith('!'):
-            if self.anti_flood(nick, cmd) >= 4:
-                self.conn.privmsg(e.target(), 'flood protection enabled, wait few seconds and try again')
+            if cmd.startswith('!'):
+                if self.anti_flood(nick, cmd) >= 4:
+                    self.conn.privmsg(e.target(), 'flood protection enabled, wait few seconds and try again')
+                else:
+                    command = Commands(self, cmd, e)
+                    command.run()
+
+            if is_channel(e.target()):
+                self.log('%s: %s - %s' % (self.channel, nick, message))
             else:
-                command = Commands(self, cmd, e)
-                command.run()
-
-        if is_channel(e.target()):
-            self.log('%s: %s - %s' % (self.channel, nick, message))
-        else:
-            self.log('pvt: %s - %s' % (nick, message))
+                self.log('pvt: %s - %s' % (nick, message))
+        except:
+            pass
 
 def main():
     config = ConfigParser()
