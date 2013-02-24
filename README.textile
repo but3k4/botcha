@@ -6,7 +6,7 @@ h2. Requirements
 
 Botcha uses some python libraries, so, on debian systems type:
 
-<pre><code>apt-get install python-irclib python-beautifulsoup python-mechanize python-httplib2 sqlite3</code></pre>
+<pre><code>apt-get install python-irclib python-beautifulsoup python-mechanize python-httplib2 python-lxml sqlite3</code></pre>
 
 h2. Installation
 
