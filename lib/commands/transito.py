@@ -1,7 +1,7 @@
 #  -*- coding: utf-8 -*-
 #
 from lib.commands import Base_Command
-from lib.modules.web import web
+from lib.modules.web import Web
 from types import *
 
 class Transito(Base_Command.Base_Command):
