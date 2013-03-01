@@ -148,7 +148,7 @@ class Bot(SingleServerIRCBot):
 
             if cmd.startswith('!'):
                 if self.anti_flood(nick, cmd) >= 4:
-                    self.conn.privmsg(e.target(), 'flood protection enabled, wait few seconds and try again')
+                    pass
                 else:
                     command = Commands(self, cmd, e)
                     command.run()
