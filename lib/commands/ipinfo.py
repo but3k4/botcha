@@ -10,7 +10,7 @@ class Ipinfo(Base_Command.Base_Command):
     def ipinfo(self):
         web = Web()
         uri = 'http://whatismyipaddress.com/ip/'
-        answer = web.html(uri + self.args[0])
+        answer = web.html(web.get(uri + self.args[0]))
 
         if type(answer) is not NoneType:
             th = answer.findAll('th')

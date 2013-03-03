@@ -8,7 +8,7 @@ class Transito(Base_Command.Base_Command):
 
     def transito(self):
         web = Web()
-        answer = web.html('http://cetsp1.cetsp.com.br/monitransmapa/agora/')
+        answer = web.html(web.get('http://cetsp1.cetsp.com.br/monitransmapa/agora/'))
         if type(answer) is not NoneType:
             dados = {
                 'hora': answer.find('div', id="hora").findAll(text=True)[0],
