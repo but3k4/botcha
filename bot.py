@@ -17,6 +17,8 @@ from irclib import nm_to_n, nm_to_uh, is_channel
 from lib.modules.logger import Logger
 from lib.modules.daemonize import Daemonize
 
+from lib.modules.edbot import Edbot
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -141,8 +143,10 @@ class Bot(SingleServerIRCBot):
         return count
 
     def do_command(self, c, e):
-        message = e.arguments()[0]
-        try:
+        message = e.arguments()[0].strip()
+        
+        if message:
+
             cmd = message.strip().split()[0]
             nick = nm_to_n(e.source())
 
@@ -152,13 +156,17 @@ class Bot(SingleServerIRCBot):
                 else:
                     command = Commands(self, cmd, e)
                     command.run()
+            else:
+                if cmd == self.nickname:
+                    edbot = Edbot()
+                    result = edbot.answer(message)
+                    if result:
+                        self.conn.privmsg(e.target(), '%s %s' % (nick, result))
 
             if is_channel(e.target()):
                 self.log('%s: %s - %s' % (self.channel, nick, message))
             else:
                 self.log('pvt: %s - %s' % (nick, message))
-        except:
-            pass
 
 def main():
     config = ConfigParser()
