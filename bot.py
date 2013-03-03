@@ -22,8 +22,6 @@ from lib.modules.edbot import Edbot
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-#__import__('irclib').DEBUG = True
-
 class Commands(object):
     commands = {}
     def __init__(self, parent, cmd, event):
@@ -157,7 +155,7 @@ class Bot(SingleServerIRCBot):
                     command = Commands(self, cmd, e)
                     command.run()
             else:
-                if cmd == self.nickname:
+                if cmd.strip(':') == self.nickname:
                     edbot = Edbot()
                     result = edbot.answer(message)
                     if result:
