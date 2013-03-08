@@ -16,16 +16,28 @@ class Web(object):
         pass
 
     def get(self, url):
-        sock = httplib2.Http(timeout=5)
-        headers, response = sock.request(url)
-        if headers['status'] in (200, '200'):
-            return response
+        sock = httplib2.Http(timeout=10)
+        try:
+            headers, response = sock.request(url)
+            if headers['status'] in (200, '200'):
+                return response
+        except:
+            return False
 
     def html(self, data):
-        return BeautifulSoup.BeautifulSoup(data)
+        if isinstance(data, str):
+            return BeautifulSoup.BeautifulSoup(data)
+        else:
+            return False
 
     def xml(self, data):
-        return xml.dom.minidom.parseString(data)
+        if isinstance(data, str):
+            return xml.dom.minidom.parseString(data)
+        else:
+            return False
 
     def json(self, data):
-        return json.loads(data)
+        if isinstance(data, str):
+            return json.loads(data)
+        else:
+            return False
