@@ -2,7 +2,6 @@
 #
 from lib.commands import Base_Command
 from lib.modules.web import Web
-from types import *
 from lxml import html
 
 class Ipinfo(Base_Command.Base_Command):
@@ -12,7 +11,7 @@ class Ipinfo(Base_Command.Base_Command):
         uri = 'http://whatismyipaddress.com/ip/'
         answer = web.html(web.get(uri + self.args[0]))
 
-        if type(answer) is not NoneType:
+        if answer:
             th = answer.findAll('th')
             td = answer.findAll('td')
 
