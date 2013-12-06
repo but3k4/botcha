@@ -15,6 +15,10 @@ class Help(Base_Command.Base_Command):
         self.parent.conn.privmsg(self.channel, '%s' % ('!btc'))
         self.parent.conn.privmsg(self.channel, '%s' % ('!transito'))
         self.parent.conn.privmsg(self.channel, '%s' % ('!sl'))
+        self.parent.conn.privmsg(self.channel, '%s' % ('!dollar'))
+        self.parent.conn.privmsg(self.channel, '%s' % ('!ipinfo'))
+        self.parent.conn.privmsg(self.channel, '%s' % ('!sebolaitor'))
+
 
     def run(self):
         self.help()
