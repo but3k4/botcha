@@ -21,6 +21,14 @@ class Add(Base_Command.Base_Command):
             return False
         return True
 
+    def mulher(self, string):
+        db = Database()
+        try:
+            db.insert('mulheres', string.strip())
+        except:
+            return False
+        return True
+
     def add(self):
         if len(self.args) > 1:
             content = ' '.join(self.args[1:])
@@ -34,6 +42,13 @@ class Add(Base_Command.Base_Command):
                 result = self.xingamento(content)
                 if result:
                     self.parent.conn.privmsg(self.channel, "%s, %s adicionado." % (self.nick, self.args[0]))
+
+            if self.args[0] == 'mulher':
+                result = self.mulher(content)
+                if result:
+                    self.parent.conn.privmsg(self.channel, "%s, %s adicionado." % (self.nick, self.args[0]))
+
+
 	else:
 		self.parent.conn.privmsg(self.channel, "%s, deixa de ser burro." % self.nick)
 
