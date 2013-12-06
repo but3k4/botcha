@@ -46,7 +46,7 @@ class Add(Base_Command.Base_Command):
             if self.args[0] == 'mulher':
                 result = self.mulher(content)
                 if result:
-                    self.parent.conn.privmsg(self.channel, "%s, %s adicionado." % (self.nick, self.args[0]))
+                    self.parent.conn.privmsg(self.channel, "%s, gostosa adicionada." % (self.nick))
 
 
 	else:
