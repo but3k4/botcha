@@ -1,14 +1,12 @@
 #  -*- coding: utf-8 -*-
 #
 from lib.commands import Base_Command
-from lib.modules.database import Database
 
-class Help(Base_Command.Base_Command):
+class Ajuda(Base_Command.Base_Command):
 
-    def help(self):
-        self.help = None
+    def ajuda(self):
         self.parent.conn.privmsg(self.channel, '%s' % ('-- comandos disponiveis --'))
-        self.parent.conn.privmsg(self.channel, '%s' % ('!help'))
+        self.parent.conn.privmsg(self.channel, '%s' % ('!ajuda'))
         self.parent.conn.privmsg(self.channel, '%s' % ('!quote (!add quote)'))
         self.parent.conn.privmsg(self.channel, '%s' % ('!xinga (!add xingamento)'))
         self.parent.conn.privmsg(self.channel, '%s' % ('!lero'))
@@ -21,4 +19,4 @@ class Help(Base_Command.Base_Command):
 
 
     def run(self):
-        self.help()
+        self.ajuda()
