@@ -8,14 +8,14 @@ class Transito(Base_Command.Base_Command):
     def transito(self):
         web = Web()
         answer = web.html(web.get('http://cetsp1.cetsp.com.br/monitransmapa/agora/'))
-        if answer:
+        try:
             dados = {
                 'hora': answer.find('div', id="hora").findAll(text=True)[0],
                 'lentidao': answer.find('div', id="lentidao").findAll(text=True)[0],
             }
             result = "%(lentidao)s km de transito, atualizado as %(hora)s" % dados
             self.parent.conn.privmsg(self.channel, result)
-        else:
+        except:
             return False
 
     def run(self):

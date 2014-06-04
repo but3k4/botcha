@@ -9,7 +9,7 @@ class Mulher(Base_Command.Base_Command):
         db = Database()
         self.mulher = None
         try:
-            self.mulher = db.select('mulheres', 'mulher', 1)[0][0]
+            self.mulher = db.select('mulher', 'mulheres', 1)[0][0]
         except:
             return False
         if self.mulher:

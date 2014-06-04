@@ -2,26 +2,29 @@
 #
 from lib.commands import Base_Command
 from lib.modules.web import Web
-from lxml import html
+import re
 
 class Ipinfo(Base_Command.Base_Command):
 
     def ipinfo(self):
         web = Web()
         uri = 'http://whatismyipaddress.com/ip/'
-        answer = web.html(web.get(uri + self.args[0]))
+        try:
+            answer = web.html(web.get(uri + self.args[0]))
 
-        if answer:
-            th = answer.findAll('th')
-            td = answer.findAll('td')
+            if answer:
+                th = answer.findAll('th')
+                td = answer.findAll('td')
 
-            infos = []
-            for x in range(len(td)):
-                key = th[x].string.lower().strip()
-                value = str(html.fromstring(str(td[x]).replace('\n', '')).text).strip()
-                if not value.startswith('None'):
-                    infos.append("%s %s" % (key, value))
-        else:
+                infos = []
+                for x in range(len(td)):
+                    key = th[x].string.lower().strip()
+                    value = re.sub('\([^()]+\)', '', re.sub('<[^<>]*>', '', str(td[x])).strip('\n').replace('&nbsp;', '').strip())
+                    if not value.startswith('None') and len(value):
+                        infos.append("%s %s" % (key, value))
+            else:
+                return False
+        except:
             return False
 
         if len(infos):
