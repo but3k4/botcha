@@ -6,8 +6,9 @@ Copyright 2008, Claudio Borges
 Licensed under BSD License.
 """
 import httplib2
-import BeautifulSoup
+from bs4 import BeautifulSoup
 import xml.dom.minidom
+import urllib
 import json
 
 class Web(object):
@@ -26,9 +27,12 @@ class Web(object):
 
     def html(self, data):
         if isinstance(data, str):
-            return BeautifulSoup.BeautifulSoup(data)
+            return BeautifulSoup(data)
         else:
             return False
+
+    def encode(self, data):
+        return urllib.urlencode(data)
 
     def xml(self, data):
         if isinstance(data, str):
